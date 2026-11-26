@@ -1,18 +1,133 @@
-"""Original score candidate generator via ACE-Step 1.5."""
+"""Original score candidate management & Kaggle/Colab ACE-Step 1.5 script generator."""
 
 from __future__ import annotations
 
 import argparse
+import shutil
+import sys
+from pathlib import Path
+
+from pipeline.utils import OUTPUTS_DIR, STORYBOARD_PATH, load_json, log_run
+
+MUSIC_DIR = OUTPUTS_DIR / "music"
+
+
+def emit_kaggle_script(storyboard: dict, *, candidates: int = 3) -> Path:
+    """Write a self-contained Kaggle/Colab Python script for ACE-Step 1.5 candidate generation."""
+    MUSIC_DIR.mkdir(parents=True, exist_ok=True)
+    music_cfg = storyboard["music"]
+    duration_sec = int(round(float(storyboard["target_duration_sec"])))
+    script_path = MUSIC_DIR / "acestep_kaggle_job.py"
+
+    # Tempo (BPM) and key are passed in metadata fields rather than inside the caption.
+    content = f'''"""Run on Kaggle (2x T4) or Google Colab to generate {candidates} ACE-Step 1.5 score candidates."""
+import json
+import time
+from pathlib import Path
+
+# Install once in notebook cell:
+# !pip install -q git+https://github.com/ACE-Step/ACE-Step-1.5.git
+
+CAPTION = {music_cfg["caption"]!r}
+BPM = {int(music_cfg["bpm"])}
+KEY = {music_cfg["key"]!r}
+INSTRUMENTAL = {bool(music_cfg["instrumental"])}
+BASE_SEED = {int(music_cfg["seed"])}
+DURATION_SEC = {min(60, max(30, duration_sec))}
+NUM_CANDIDATES = {candidates}
+
+OUT_DIR = Path("acestep_candidates")
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+try:
+    from acestep.pipeline_ace_step import ACEStepPipeline
+except ImportError as exc:
+    raise SystemExit(
+        "Install ACE-Step 1.5 first: pip install git+https://github.com/ACE-Step/ACE-Step-1.5.git"
+    ) from exc
+
+pipe = ACEStepPipeline()
+pipe.load_checkpoint()
+
+logs = []
+for i in range(NUM_CANDIDATES):
+    seed = BASE_SEED + i
+    out_wav = OUT_DIR / f"candidate_{{i + 1:02d}}.wav"
+    t0 = time.perf_counter()
+    pipe(
+        prompt=CAPTION,
+        lyrics="[instrumental]" if INSTRUMENTAL else "",
+        audio_duration=float(DURATION_SEC),
+        bpm=BPM,
+        key=KEY,
+        manual_seeds=[seed],
+        save_path=str(out_wav),
+    )
+    dt = time.perf_counter() - t0
+    logs.append({{"candidate": out_wav.name, "seed": seed, "latency_s": round(dt, 3)}})
+    print(f"Generated {{out_wav}} in {{dt:.2f}}s (seed={{seed}})")
+
+(OUT_DIR / "music_runs.json").write_text(json.dumps(logs, indent=2), encoding="utf-8")
+'''
+    script_path.write_text(content, encoding="utf-8")
+    return script_path
+
+
+def select_candidate(*, storyboard_path: Path, candidate_name: str) -> Path:
+    """Copy a chosen ACE-Step candidate WAV into `storyboard['music']['chosen_track']`."""
+    storyboard = load_json(storyboard_path)
+    chosen_rel = Path(storyboard["music"]["chosen_track"])
+    chosen_path = chosen_rel if chosen_rel.is_absolute() else (storyboard_path.parent / chosen_rel).resolve()
+
+    src = Path(candidate_name)
+    if not src.exists():
+        src = MUSIC_DIR / candidate_name
+    if not src.exists():
+        raise FileNotFoundError(f"Music candidate not found: {candidate_name}")
+
+    chosen_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, chosen_path)
+    log_run(
+        stage="music_select",
+        shot_id=None,
+        model=storyboard["music"]["model"],
+        params={"selected": src.name, "bpm": storyboard["music"]["bpm"], "key": storyboard["music"]["key"]},
+        seed=int(storyboard["music"]["seed"]),
+        latency_s=0.0,
+        status="ok",
+        note=f"selected {src.name} -> {chosen_path.name}",
+    )
+    print(f"[music] Selected {src.name} -> {chosen_path}")
+    return chosen_path
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Generate ACE-Step 1.5 score candidates.")
+    parser = argparse.ArgumentParser(description="Prepare ACE-Step 1.5 job or select chosen score.")
+    parser.add_argument("--storyboard", type=Path, default=STORYBOARD_PATH)
     parser.add_argument("--candidates", type=int, default=3)
+    parser.add_argument("--emit-job", action="store_true", help="Write Kaggle/Colab ACE-Step job script.")
+    parser.add_argument("--select", help="Copy a generated candidate WAV into `chosen_track`.")
     args = parser.parse_args(argv)
-    print(
-        f"pipeline.music scaffold ready (candidates={args.candidates}) — "
-        "awaiting Step 4 score auditioning."
-    )
+
+    try:
+        storyboard = load_json(args.storyboard)
+        if args.select:
+            select_candidate(storyboard_path=args.storyboard, candidate_name=args.select)
+            return 0
+
+        chosen_rel = Path(storyboard["music"]["chosen_track"])
+        chosen_path = chosen_rel if chosen_rel.is_absolute() else (args.storyboard.parent / chosen_rel).resolve()
+        if chosen_path.exists() and not args.emit_job:
+            print(f"[music] Chosen score present: {chosen_path}")
+            return 0
+
+        script_path = emit_kaggle_script(storyboard, candidates=args.candidates)
+        print(f"[music] Wrote ACE-Step Kaggle/Colab job script: {script_path}")
+        if not chosen_path.exists():
+            print("[music] Upload/run that script on Kaggle or Colab, download the 3 candidates to `outputs/music/`, then run `--select candidate_01.wav`.")
+    except Exception as exc:  # noqa: BLE001
+        print(f"Music stage failed: {exc}", file=sys.stderr)
+        return 1
     return 0
 
 

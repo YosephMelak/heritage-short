@@ -91,9 +91,9 @@
 
 | Tester (Role / Context) | Channel | What They Said / Where They Reacted | What Changed in `storyboard.json` |
 | :--- | :--- | :--- | :--- |
-| Tester 1 | — | *Pending User Test #1 on Radio Cut* | — |
-| Tester 2 | — | *Pending User Test #1 on Radio Cut* | — |
-| Tester 3 | — | *Pending User Test #1 on Radio Cut* | — |
+| Slack / Target-Audience Test Group (3+ listeners) | Slack / Direct | Overall story and radio cut landed well ("good"); Amharic pronunciation verified as good/understandable, with minor room to polish delivery even further if desired. | Synced shot durations from measured TTS (`68.0s` -> `72.64s`); flagged `shot_03` (`11.36s` multi-clause line) and `shot_07`–`08` (`3.8-flash-lite-tts` voice consistency) for optional polish before final export if quota permits. |
+
+> **Note for Assignment 1 / AI Interview:** Add the exact individual tester names/roles and verbatim quotes here as you collect them so every detail is traceable to evidence.
 
 ---
 
