@@ -2,16 +2,24 @@
 
 ## 1. Overview & `storyboard.json` Contract
 
+![Pipeline Architecture Diagram](./ARCHITECTURE.png)
+
 `storyboard.json` is the single contract shared across every stage, validated against `schema/storyboard.schema.json` before any stage runs in `pipeline/validate.py`.
 
-```text
-storyboard.json
-  ├──> pipeline/validate.py   (JSON Schema + 60–90s duration sum + consent_verified gate)
-  ├──> pipeline/narration.py  (Gemini TTS 4-model fallback cascade -> outputs/narration/ + duration sync)
-  ├──> pipeline/keyframes.py  (Cloudflare Workers AI FLUX.2 klein 4B + curated stills -> refs/ + keyframes/)
-  ├──> pipeline/music.py      (ACE-Step 1.5 Kaggle/Colab job emitter + candidate selector -> chosen_score.wav)
-  ├──> pipeline/shots.py      (Wan 2.2 TI2V-5B 1280*704 ingest / 4x-supersampled FFmpeg Ken Burns fallback -> shots/)
-  └──> pipeline/assemble.py   (Radio Cut OR Final 9:16 cinema-blur & 16:9 widescreen, ducked score, -14 LUFS, SRT subtitles, closing card)
+```mermaid
+flowchart LR
+    SB["storyboard.json + schema"] --> V["1. validate.py\n(Schema, 60-90s, Consent)"]
+    V --> N["2. narration.py\n(Gemini TTS 4-model cascade)"]
+    N --> K["3. keyframes.py\n(6 curated + FLUX.2 klein 4B)"]
+    K --> M["4. music.py\n(MusicGen-small 72 BPM)"]
+    M --> S["5. shots.py\n(4x FFmpeg zoompan / Wan 2.2)"]
+    S --> A["6. assemble.py\n(-14 LUFS ducking + subtitles)"]
+    A --> OUT["film_9x16.mp4 & film_16x9.mp4"]
+    N -. "User Test #1 radio_cut" .-> SB
+    OUT -. "User Test #2 EXP-14/15" .-> A
+    C[("*.sha256 Cache & runs.jsonl")] <--> N
+    C <--> K
+    C <--> S
 ```
 
 Executed end-to-end from a clean clone via `make film` or `python -m pipeline.run`.
