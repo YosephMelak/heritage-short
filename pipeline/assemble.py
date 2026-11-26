@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -46,6 +47,25 @@ def _write_srt(storyboard: dict[str, Any], srt_path: Path) -> None:
     srt_path.write_text("\n".join(lines), encoding="utf-8")
 
 
+def _ffmpeg_env() -> dict[str, str]:
+    """Ensure Fontconfig resolves system fonts cleanly on Windows FFmpeg builds."""
+    env = os.environ.copy()
+    if os.name == "nt" and not env.get("FONTCONFIG_FILE"):
+        fonts_dir = Path("C:/Windows/Fonts")
+        if fonts_dir.exists():
+            TEMP_DIR.mkdir(parents=True, exist_ok=True)
+            fc_conf = TEMP_DIR / "fonts.conf"
+            if not fc_conf.exists():
+                fc_conf.write_text(
+                    '<?xml version="1.0"?>\n'
+                    '<!DOCTYPE fontconfig SYSTEM "fonts.dtd">\n'
+                    "<fontconfig><dir>C:/Windows/Fonts</dir></fontconfig>\n",
+                    encoding="utf-8",
+                )
+            env["FONTCONFIG_FILE"] = str(fc_conf.resolve())
+    return env
+
+
 def _run_ffmpeg(ffmpeg_bin: str, args: list[str]) -> subprocess.CompletedProcess[str]:
     """Execute FFmpeg and raise a concise error on non-zero exit."""
     proc = subprocess.run(
@@ -54,6 +74,7 @@ def _run_ffmpeg(ffmpeg_bin: str, args: list[str]) -> subprocess.CompletedProcess
         text=True,
         encoding="utf-8",
         errors="replace",
+        env=_ffmpeg_env(),
     )
     if proc.returncode != 0:
         raise RuntimeError(f"FFmpeg failed (exit {proc.returncode}):\n{proc.stderr[-800:]}")
@@ -189,12 +210,15 @@ def _two_pass_loudnorm_mix(
         [
             "-i",
             str(narration_wav),
+            "-stream_loop",
+            "-1",
             "-i",
             str(music_wav),
             "-filter_complex",
             (
                 "[0:a]asplit=2[voice][sc];"
-                "[1:a][sc]sidechaincompress=threshold=0.02:ratio=6:attack=300:release=1500[ducked];"
+                "[1:a][sc]sidechaincompress=threshold=0.02:ratio=6:attack=300:release=1500,"
+                f"atrim=0:{total_sec:.3f},afade=t=out:st={max(0.0, total_sec - 2.0):.3f}:d=2.0[ducked];"
                 f"[voice][ducked]amix=inputs=2:duration=first:normalize=0,atrim=0:{total_sec:.3f}[aout]"
             ),
             "-map",
@@ -334,17 +358,65 @@ def _render_aspect_export(
     out_mp4: Path,
     end_card_sec: float = 2.5,
 ) -> float:
-    """Render either 9:16 or 16:9 final film with subtitles and 2.5s AI end card."""
+    """Render either 9:16 (full-frame blurred-atmosphere layout) or 16:9 final film."""
     tag = f"{width}x{height}"
     fitted_clips: list[Path] = []
 
-    for shot in shots:
+    title_parts = [p.strip() for p in storyboard["title"].split("—", 1)]
+    title_en = title_parts[0]
+    title_am = title_parts[1] if len(title_parts) > 1 else ""
+    title_en_file = TEMP_DIR / "title_en.txt"
+    title_am_file = TEMP_DIR / "title_am.txt"
+    title_en_file.write_text(title_en, encoding="utf-8")
+    title_am_file.write_text(title_am, encoding="utf-8")
+
+    win_arial = Path("C:/Windows/Fonts/arial.ttf")
+    win_nyala = Path("C:/Windows/Fonts/nyala.ttf")
+    if not win_nyala.exists():
+        win_nyala = Path("C:/Windows/Fonts/ebrima.ttf")
+    font_opt = f"fontfile='{win_arial.as_posix().replace(':', '\\:')}':" if (os.name == "nt" and win_arial.exists()) else ""
+    am_font_opt = f"fontfile='{win_nyala.as_posix().replace(':', '\\:')}':" if (os.name == "nt" and win_nyala.exists()) else font_opt
+
+    for idx, shot in enumerate(shots):
         sid = shot["id"]
         dur = float(shot["duration_sec"])
         clip_path = SHOTS_DIR / f"{sid}.mp4"
         if not clip_path.exists():
             raise FileNotFoundError(f"Missing video clip {clip_path}. Run `python -m pipeline.shots` first.")
         fitted = TEMP_DIR / f"{tag}_{sid}.mp4"
+        if width < height:
+            # Place full 16:9 picture over a dimmed Gaussian-blurred nocturnal background so zero characters are cropped.
+            vf = (
+                f"split=2[bg][fg];"
+                f"[bg]scale=270:480:force_original_aspect_ratio=increase,"
+                f"crop=270:480,boxblur=7:2,scale={width}:{height}:flags=bilinear,"
+                f"eq=brightness=-0.22:saturation=0.85[bgb];"
+                f"[fg]scale={width}:-2:flags=lanczos[fgs];"
+                f"[bgb][fgs]overlay=(W-w)/2:(H-h)/2-60,setsar=1,fps=24"
+            )
+        else:
+            vf = f"scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},setsar=1,fps=24"
+
+        if idx == 0:
+            en_tf = _escape_ffmpeg_sub_path(title_en_file)
+            am_tf = _escape_ffmpeg_sub_path(title_am_file)
+            alpha_expr = "if(lt(t\\,0.85)\\,(t-0.25)/0.6\\,if(gt(t\\,3.65)\\,(4.25-t)/0.6\\,1))"
+            en_y = 418 if width < height else 76
+            am_y = 480 if width < height else 138
+            en_sz = 38 if width < height else 44
+            am_sz = 48 if width < height else 52
+            vf += (
+                f",drawtext={font_opt}textfile='{en_tf}':fontcolor=white:fontsize={en_sz}:"
+                f"x=(w-text_w)/2:y={en_y}:shadowx=2:shadowy=2:shadowcolor=black@0.85:"
+                f"enable='between(t\\,0.25\\,4.25)':alpha='{alpha_expr}'"
+            )
+            if title_am:
+                vf += (
+                    f",drawtext={am_font_opt}textfile='{am_tf}':fontcolor=#f4d58d:fontsize={am_sz}:"
+                    f"x=(w-text_w)/2:y={am_y}:shadowx=2:shadowy=2:shadowcolor=black@0.85:"
+                    f"enable='between(t\\,0.25\\,4.25)':alpha='{alpha_expr}'"
+                )
+
         _run_ffmpeg(
             ffmpeg_bin,
             [
@@ -355,7 +427,7 @@ def _render_aspect_export(
                 "-t",
                 f"{dur:.3f}",
                 "-vf",
-                f"scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},setsar=1,fps=24",
+                vf,
                 "-an",
                 "-c:v",
                 "libx264",
@@ -366,9 +438,9 @@ def _render_aspect_export(
         )
         fitted_clips.append(fitted)
 
-    # Append visible 2.5s AI disclosure end card
+    # Append clean 2.5s closing end card
     end_card = TEMP_DIR / f"{tag}_endcard.mp4"
-    escaped_title = storyboard["title"].split("—")[0].strip().replace(":", "\\:").replace("'", "\\'")
+    escaped_title = title_en.replace(":", "\\:").replace("'", "\\'")
     _run_ffmpeg(
         ffmpeg_bin,
         [
@@ -378,9 +450,9 @@ def _render_aspect_export(
             f"color=c=#0e1116:s={width}x{height}:r=24:d={end_card_sec:.2f}",
             "-vf",
             (
-                f"drawtext=text='Made with AI':fontcolor=white:fontsize={44 if width < height else 48}:"
-                "x=(w-text_w)/2:y=(h-text_h)/2-36,"
-                f"drawtext=text='{escaped_title}':fontcolor=#cccccc:fontsize={26 if width < height else 30}:"
+                f"drawtext={font_opt}text='Thank you for watching':fontcolor=white:fontsize={44 if width < height else 48}:"
+                "x=(w-text_w)/2:y=(h-text_h)/2-34,"
+                f"drawtext={font_opt}text='{escaped_title}':fontcolor=#cccccc:fontsize={26 if width < height else 30}:"
                 "x=(w-text_w)/2:y=(h-text_h)/2+28"
             ),
             "-c:v",
@@ -399,6 +471,7 @@ def _render_aspect_export(
     )
 
     srt_escaped = _escape_ffmpeg_sub_path(srt_path)
+    fontsdir_opt = f":fontsdir='{win_arial.parent.as_posix().replace(':', '\\:')}'" if (os.name == "nt" and win_arial.exists()) else ""
     t0 = time.perf_counter()
     _run_ffmpeg(
         ffmpeg_bin,
@@ -413,8 +486,8 @@ def _render_aspect_export(
             str(audio_mix),
             "-vf",
             (
-                f"subtitles='{srt_escaped}':force_style='FontName=Arial,"
-                f"FontSize={16 if width < height else 20},PrimaryColour=&H00FFFFFF,"
+                f"subtitles='{srt_escaped}'{fontsdir_opt}:force_style='FontName=Arial,"
+                f"FontSize={10 if width < height else 14},PrimaryColour=&H00FFFFFF,"
                 f"OutlineColour=&H00000000,BorderStyle=1,Outline=2,Shadow=1,"
                 f"Alignment=2,MarginV={margin_v}'"
             ),
@@ -499,7 +572,7 @@ def build_final_film(*, storyboard_path: Path = STORYBOARD_PATH) -> tuple[Path, 
         srt_path=srt_path,
         width=1080,
         height=1920,
-        margin_v=180,
+        margin_v=52,
         out_mp4=out_9x16,
     )
     log_run(
@@ -522,7 +595,7 @@ def build_final_film(*, storyboard_path: Path = STORYBOARD_PATH) -> tuple[Path, 
         srt_path=srt_path,
         width=1920,
         height=1080,
-        margin_v=60,
+        margin_v=22,
         out_mp4=out_16x9,
     )
     log_run(

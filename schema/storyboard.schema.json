@@ -66,7 +66,7 @@
       "properties": {
         "model": {
           "type": "string",
-          "enum": ["ace-step-1.5", "lyria-3.5"]
+          "enum": ["ace-step-1.5", "lyria-3.5", "musicgen-small"]
         },
         "caption": { "type": "string", "minLength": 5 },
         "bpm": { "type": "integer", "minimum": 40, "maximum": 200 },

@@ -1,0 +1,23 @@
+[
+  {
+    "candidate": "candidate_01.wav",
+    "model": "facebook/musicgen-small",
+    "seed": 5401,
+    "latency_s": 713.79,
+    "sr": 32000
+  },
+  {
+    "candidate": "candidate_02.wav",
+    "model": "facebook/musicgen-small",
+    "seed": 5402,
+    "latency_s": 698.29,
+    "sr": 32000
+  },
+  {
+    "candidate": "candidate_03.wav",
+    "model": "facebook/musicgen-small",
+    "seed": 5403,
+    "latency_s": 707.34,
+    "sr": 32000
+  }
+]

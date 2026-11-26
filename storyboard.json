@@ -1,25 +1,25 @@
 {
   "title": "Keeper of the Hyenas: A Night in Harar — የጅቦቹ ጠባቂ፡ አንድ ምሽት በሐረር",
   "language": "Amharic",
-  "target_duration_sec": 72.64,
+  "target_duration_sec": 72.26,
   "aspect_ratios": [
     "9:16",
     "16:9"
   ],
-  "style_block": "Nocturnal atmosphere just outside the ancient weathered coral-stone walls of Harar Jugol, warm amber lantern light and soft cool moonlight against deep indigo night shadows, traditional Harari embroidered tunic and wrapped cotton headcloth, documentary realism, subtle 35mm film grain, centered subject framing safe for both 9:16 and 16:9, no embedded text.",
+  "style_block": "Authentic ungraded low-light 35mm documentary photograph outside the weathered dark grey stone fortress walls and arched gate of Harar Jugol at night, natural charcoal-black night sky without cyan or teal color cast, realistic warm kerosene lantern illumination only on nearby subjects, natural weathered human skin texture and realistic fabric creases, centered safe framing, no embedded text.",
   "character_ref": {
     "id": "keeper_umar_and_dawit",
-    "prompt": "Fictional seasoned Harari elder hyena keeper Umar wearing a traditional embroidered Harari tunic and wrapped cotton headcloth, holding an oil lantern beside a woven straw meat basket, next to young Ethiopian man Dawit in a warm dark jacket, standing outside ancient Harar Jugol coral-stone walls at night, warm lantern glow and cool moonlight, centered composition, documentary realism.",
-    "seed": 4401,
+    "prompt": "Fictional seasoned Ethiopian Harari elder Umar (dark brown East African skin, short grey beard, patterned white turban, olive-brown embroidered tunic robe, colorful striped woven shoulder shawl, white cotton wrap) beside a woven straw basket of meat and glowing brass kerosene lantern, standing opposite fictional Ethiopian teenage boy Dawit (dark brown East African skin, short curly black hair, dark quilted zip jacket) outside Harar Jugol's arched coral-stone fortress gate at night under mist and moonlight, 35mm documentary realism.",
+    "seed": 4410,
     "image_path": "outputs/refs/golden_ref.png"
   },
   "music": {
-    "model": "ace-step-1.5",
+    "model": "musicgen-small",
     "caption": "Atmospheric nocturnal Ethiopian acoustic score, deep resonant krar bass plucks, subtle traditional Harari percussive pulse, and haunting washint flute notes, building from quiet night tension to grounded reverence and peace, spacious under Amharic narration, no vocals",
     "bpm": 72,
     "key": "D minor",
     "instrumental": true,
-    "seed": 5401,
+    "seed": 5403,
     "chosen_track": "outputs/music/chosen_score.wav"
   },
   "shots": [
@@ -37,62 +37,62 @@
       "video_model": "wan-2.2",
       "draft_resolution": "480p",
       "consent_verified": true,
-      "cache_key": ""
+      "cache_key": "b4a7a005c9e161eec54e0216e6a725edd051f17eb7f574156f12d618b7295ec4"
     },
     {
       "id": "shot_02",
       "duration_sec": 7.56,
       "shot_reason": "Show the traditional woven straw basket of meat scraps and the short wooden feeding stick, grounding the ritual in real Harari practice rather than spectacle.",
       "shot_size": "insert",
-      "visual_prompt": "Centered close-up of elder keeper Umar's weathered hands preparing pieces of raw meat on a smooth short wooden feeding stick beside a traditional woven straw basket, illuminated by warm flickering amber lantern light against the textured stone ground outside Harar Jugol, shallow depth of field.",
+      "visual_prompt": "Tight overhead close-up insert of weathered Ethiopian elder hands preparing pieces of raw meat on a smooth short wooden stick beside an open woven straw basket and a glowing brass oil lantern resting on dusty stone ground outside Harar Jugol at night, warm amber light, shallow depth of field, no faces visible.",
       "camera_motion": "Slow steady push-in over the keeper's steady hands and woven basket.",
       "narration_text": "ለዘመናት በዘለቀው የሐረር ወግ፣ ፍርሃት በመተማመን ይተካል።",
       "subtitle_en": "In this old Harari tradition,\nfear slowly yields to trust.",
       "music_cue": "Subtle hand-drum pulse enters quietly beneath the lantern glow.",
-      "seed": 6402,
+      "seed": 6412,
       "video_model": "wan-2.2",
       "draft_resolution": "480p",
       "consent_verified": true,
-      "cache_key": ""
+      "cache_key": "72505dbe7057ec8db2a4382a8b386238d4adb4ce72716e6e690a1919d5d73cd3"
     },
     {
       "id": "shot_03",
-      "duration_sec": 13.36,
+      "duration_sec": 12.98,
       "shot_reason": "Deliver the keeper's central heritage wisdom on mutual peace and respect between Harar's people and the hyenas.",
       "shot_size": "medium_close_up",
-      "visual_prompt": "Centered medium close-up of seasoned Harari elder Umar in his traditional tunic and wrapped cotton headcloth, standing on the left in warm golden lantern light, calling softly into the night toward the shadows on the right with a calm, fearless expression, ancient coral-stone wall behind him.",
+      "visual_prompt": "Single-person centered close-up portrait of seasoned Ethiopian Harari elder Umar (dark brown East African skin, short grey beard, white wrapped turban, beige embroidered Harari tunic) bathed in warm golden lantern light against rough coral-stone Harar wall at night, looking calmly off toward the right shadows as he calls softly, no second person in frame.",
       "camera_motion": "Very slow gentle push-in on Umar's serene, focused face.",
-      "narration_text": "ጠባቂውም በስማቸው እየጠራ፣ ሰላምን ስትሰጥ ሰላምን ታገኛለህ፣ ተፈጥሮ ክብርን ታውቃለች አለኝ።",
+      "narration_text": "እርሱም፣ ጠባቂውም፣ በስማቸው እየጠራ፣ ሰላምን ስትሰጥ ሰላምን ታገኛለህ፣ ተፈጥሮ ክብርን ታውቃለች አለኝ።",
       "subtitle_en": "Calling them softly, the keeper said:\n'Give peace, and nature knows respect.'",
       "music_cue": "Soft haunting washint flute phrase answers gently.",
-      "seed": 6403,
+      "seed": 6413,
       "video_model": "wan-2.2",
       "draft_resolution": "480p",
       "consent_verified": true,
-      "cache_key": ""
+      "cache_key": "1a75945b5e0f72ae1a2aa9d4ec77de74532965b0bd97dd3f9789e79e61afe902"
     },
     {
       "id": "shot_04",
       "duration_sec": 9.31,
       "shot_reason": "Show the peaceful feeding interaction—the hyena approaching calmly in lantern light without aggression, proving the keeper's words.",
       "shot_size": "medium",
-      "visual_prompt": "Centered medium shot in warm amber lantern light and cool blue moonlight: a large spotted hyena steps calmly out of the night shadows and gently takes a piece of meat offered from the short wooden stick held steadily by elder keeper Umar, calm non-aggressive posture, dusty earth and Harar stone wall in soft focus.",
+      "visual_prompt": "Unretouched low-light 35mm documentary photograph matching the exact natural dark slate sky, weathered grey-brown Harar stone fortress gate, subtle mist, woven straw basket of meat, brass kerosene lantern on the ground, and realistic African spotted hyena of the reference image — no teal/cyan cast and no moon. Remove the boy completely so only elder keeper Umar and the spotted hyena are present: elder Ethiopian Harari man Umar (clear natural three-quarter face softly lit from below by the lantern, realistic weathered skin, short grey beard, patterned white turban, olive-brown embroidered tunic, colorful striped Ethiopian woven shawl, white wrap) standing with relaxed natural posture and bent elbow, leaning gently forward as he extends the short wooden feeding stick with meat calmly toward the spotted hyena.",
       "camera_motion": "Locked-off camera holding cleanly on the calm, respectful exchange.",
       "narration_text": "ጅቦቹም በተራቸው ቀርበው ሲበሉ፣ የዱር አውሬ ሳይሆን የከተማዋ ጎረቤቶች ይመስላሉ።",
       "subtitle_en": "Stepping in calmly to feed, they feel\nless like beasts than city neighbors.",
       "music_cue": "Plucked krar melody carries steady, grounded calm.",
-      "seed": 6404,
+      "seed": 6444,
       "video_model": "wan-2.2",
       "draft_resolution": "480p",
       "consent_verified": true,
-      "cache_key": ""
+      "cache_key": "42cbd42cc5aab473965c097eddadb78bc11790e665aa30dbbf27dbad4f2b7b4a"
     },
     {
       "id": "shot_05",
       "duration_sec": 8.21,
-      "shot_reason": "Mark Dawit's internal turning point: letting go of fear, stepping forward, and accepting the wooden feeding stick.",
+      "shot_reason": "Mark Dawit's internal turning point: letting go of fear, stepping forward, and holding the wooden feeding stick.",
       "shot_size": "medium_close_up",
-      "visual_prompt": "Centered medium close-up of young man Dawit in his dark jacket on the right, watching the peaceful feeding in warm amber lantern light, his tense shoulders relaxing into quiet awe as he takes a steady step forward and accepts the short wooden feeding stick from elder Umar's hand.",
+      "visual_prompt": "Medium nocturnal shot outside Harar Jugol's arched stone fortress gate in warm kerosene lantern light: Ethiopian teenage boy Dawit (dark brown skin, short curly black hair, dark quilted zip jacket) stepping bravely forward while firmly holding the short wooden feeding stick with a small piece of raw meat above the woven straw basket and glowing lantern.",
       "camera_motion": "Slow steady push-in as Dawit's expression shifts from hesitation to quiet courage.",
       "narration_text": "ልቤ ቢመታም ፍርሃቴን ተውኩት፤ በትዕግሥት ወደፊት ተራመድኩ።",
       "subtitle_en": "Though my heart raced, I left fear\nbehind and stepped forward patiently.",
@@ -101,55 +101,55 @@
       "video_model": "wan-2.2",
       "draft_resolution": "480p",
       "consent_verified": true,
-      "cache_key": ""
+      "cache_key": "e09d158c9d38a22cc153a0294f139b53eab2c795b77a347c9b4436559861227e"
     },
     {
       "id": "shot_06",
       "duration_sec": 5.5,
       "shot_reason": "Hold a wordless emotional pause showing elder Umar's quiet nod of approval and trust.",
       "shot_size": "close_up",
-      "visual_prompt": "Centered close-up of elder keeper Umar in his wrapped cotton headcloth turning toward Dawit on the right, giving a slow, reassuring nod and a warm, proud smile in the golden glow of the lantern, night shadows softly blurred behind him.",
+      "visual_prompt": "Unretouched low-light 35mm documentary close-up photograph keeping the exact realistic weathered dark brown skin texture, eyes, short grey beard, patterned white turban, olive-brown embroidered tunic, and blurred dark grey Harar stone battlements from the reference image — neutral dark slate night tones with zero cyan haze and no visible lantern in frame; frame slightly closer from chest up with elder Umar looking slightly left/forward in a calm, composed, natural relaxed expression of quiet trust and warmth (no exaggerated grin).",
       "camera_motion": "Locked-off camera, subtle nod and flickering lantern light.",
       "narration_text": "",
       "subtitle_en": "",
       "music_cue": "No narration; warm krar and washint melody swells gently in the silence.",
-      "seed": 6406,
+      "seed": 6446,
       "video_model": "wan-2.2",
       "draft_resolution": "480p",
       "consent_verified": true,
-      "cache_key": ""
+      "cache_key": "a1456b11c06460e17c56b10ddd70d769a7d85465e5332f445fc99f64b269259b"
     },
     {
       "id": "shot_07",
       "duration_sec": 7.97,
       "shot_reason": "Demonstrate Dawit's transformation in action: calmly offering food to a hyena under Umar's steady presence.",
       "shot_size": "medium",
-      "visual_prompt": "Centered medium shot of young man Dawit kneeling steadily in the lantern light on the right while elder Umar stands calmly beside him on the left, Dawit holding the short wooden stick out calmly as a spotted hyena approaches gently and takes the offering in peace, warm amber glow against the dark Harar night.",
+      "visual_prompt": "Medium nocturnal shot outside Harar Jugol's stone gate in warm kerosene lantern light: Ethiopian teenage boy Dawit standing beside elder Umar (patterned white turban, olive embroidered robe, colorful striped shawl), Dawit extending the short wooden feeding stick with meat steadily toward a calm African spotted hyena facing them beside the woven basket and glowing lantern.",
       "camera_motion": "Gentle slow side drift keeping Dawit, Umar, and the hyena inside the central safe frame.",
       "narration_text": "በእርጋታ ስቀርብ፣ ሌሊቱ አስፈሪ መሆኑ ቀርቶ የአብሮነት ምስክር ሆነ።",
       "subtitle_en": "When I came in stillness, the dark\nbecame a witness to coexistence.",
       "music_cue": "Main acoustic theme lifts warmly as trust is shared.",
-      "seed": 6407,
+      "seed": 6417,
       "video_model": "wan-2.2",
       "draft_resolution": "480p",
       "consent_verified": true,
-      "cache_key": ""
+      "cache_key": "19a97174539401a423b88ac9ebeaf641912f295cdaaf90f054c059beea7bd19f"
     },
     {
       "id": "shot_08",
       "duration_sec": 10.52,
       "shot_reason": "Resolve the film by mirroring Shot 01's wide composition outside Harar Jugol's walls in peaceful harmony as hyenas retreat into the moonlit night.",
       "shot_size": "wide",
-      "visual_prompt": "Wide centered nocturnal shot mirroring the opening frame outside the ancient coral-stone wall of Harar Jugol: elder keeper Umar on the left and young man Dawit on the right standing side by side in calm camaraderie beside the glowing amber lantern and woven basket, spotted hyenas walking peacefully back into the moonlit hills beyond, warm lantern glow under a starry Ethiopian night sky.",
+      "visual_prompt": "Distant wide-angle cinematic shot outside the ancient coral-stone wall and arched gate of Harar Jugol under a deep indigo starry sky and bright moon: Ethiopian elder Umar (dark brown East African skin, white wrapped turban, embroidered beige tunic) on the left and Ethiopian teenage boy Dawit (warm dark brown East African skin, short curly black hair, dark hooded jacket) on the right standing smaller in the frame beside a warm glowing lantern and woven basket, two African spotted hyenas (Crocuta crocuta with rounded ears, sloping backs, spotted tan coats) walking peacefully away down the moonlit dirt path into distant hills.",
       "camera_motion": "Slow gentle pull-back revealing the ancient silhouette of Harar Jugol under moonlight.",
       "narration_text": "የሐረር ጥበብ ይህ ነው፤ ሰውና ተፈጥሮ በክብር ሲተያዩ፣ ጨለማው እንኳ ሰላምን ያውጃል።",
       "subtitle_en": "This is Harar's wisdom: when people\nand nature meet in respect, peace wins.",
       "music_cue": "Final resonant krar chord rings warmly and fades cleanly into night ambiance.",
-      "seed": 6408,
+      "seed": 6428,
       "video_model": "wan-2.2",
       "draft_resolution": "480p",
       "consent_verified": true,
-      "cache_key": ""
+      "cache_key": "18a4409b0f883c05d288c7beb965381f90841be066f1a616235cb60f26ae6c14"
     }
   ]
 }

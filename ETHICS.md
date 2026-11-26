@@ -19,14 +19,14 @@
 | :--- | :--- | :--- | :--- |
 | Script & Storyboard | Gemini 3.5 Flash / 3.8 Flash | Google AI Studio / Gemini API Terms | Free tier used; no private family data sent in prompts |
 | Narration | Gemini 3.8 / 3.1 / 2.5 Flash TTS | Google AI Studio / Gemini API Terms | Prebuilt synthetic voice (`Kore`) for Amharic narration |
-| Keyframes | FLUX.2 klein 4B / FLUX.1 schnell | Apache 2.0 (`FLUX.2 klein 4B` & `FLUX.1 schnell`; note `9B` is non-commercial) | Prefer `flux-2-klein-4b` or `flux-1-schnell` for permissive Apache 2.0 licensing |
-| Moving Shots | Wan 2.2 TI2V-5B | Apache 2.0 | Open-weight permissive licence |
-| Music / Score | ACE-Step 1.5 | MIT | Outputs usable commercially; trained on licensed, royalty-free, and synthetic data |
+| Keyframes | FLUX.2 klein 4B (`user_curated` stills + AI edits) | Apache 2.0 (`@cf/black-forest-labs/flux-2-klein-4b`) | Permissive Apache 2.0 inference via Cloudflare Workers AI; `shot_04` & `shot_06` edited from user-curated non-real-person Harar stills |
+| Moving Shots | Wan 2.2 TI2V-5B (scripted) / FFmpeg Ken Burns fallback (`executed`) | Apache 2.0 (`Wan 2.2`) / LGPL-GPL (`FFmpeg`) | Deterministic `4x`-supersampled `zoompan` executed locally after Kaggle GPU queue stall (`FAIL-06`) |
+| Music / Score | ACE-Step 1.5 (scripted) / Meta `facebook/musicgen-small` (`executed`) | MIT (`ACE-Step 1.5`, `audiocraft/transformers`) / `CC-BY-NC 4.0` (`musicgen-small` weights) | Non-commercial educational/challenge film use under `CC-BY-NC 4.0` after Kaggle/Colab/HF `ACE-Step` GPUs stalled (`FAIL-06`) |
 | Assembly | FFmpeg | LGPL / GPL | Deterministic non-AI editing & mixing |
 
 ## 3. AI Labelling & Provenance Plan
 
-- **In-film disclosure:** Visible 2–3 second end card stating *"Made with AI — Keeper of the Hyenas: A Night in Harar (የጅቦቹ ጠባቂ፡ አንድ ምሽት በሐረር)"*.
+- **In-film closing card:** Clean 2.5-second closing card displaying *"Thank you for watching — Keeper of the Hyenas: A Night in Harar"* (relying on the platform AI-generated content label and repository disclosures per creator aesthetic direction).
 - **Platform disclosure:** Switch **ON** the platform's AI-generated content label when publishing publicly.
 - **Provenance metadata:** Preserve watermarks and provenance metadata (**SynthID**, **C2PA**) intact wherever supported by models/tools.
 

@@ -19,55 +19,98 @@ def emit_kaggle_script(storyboard: dict, *, candidates: int = 3) -> Path:
     duration_sec = int(round(float(storyboard["target_duration_sec"])))
     script_path = MUSIC_DIR / "acestep_kaggle_job.py"
 
-    # Tempo (BPM) and key are passed in metadata fields rather than inside the caption.
-    content = f'''"""Run on Kaggle (2x T4) or Google Colab to generate {candidates} ACE-Step 1.5 score candidates."""
+    # Tempo (BPM), musical keyscale, and instrumental mode go in GenerationParams metadata fields.
+    content = f'''"""Run on Kaggle (T4 x2 / P100) or Google Colab to generate {candidates} ACE-Step 1.5 score candidates."""
 import json
+import shutil
 import time
 from pathlib import Path
 
-# Install once in notebook cell:
-# !pip install -q git+https://github.com/ACE-Step/ACE-Step-1.5.git
+# Run once in Notebook Cell 1 (requires GPU + Internet ON):
+# !git clone https://github.com/ACE-Step/ACE-Step-1.5.git
+# !pip install -q -e ACE-Step-1.5
 
 CAPTION = {music_cfg["caption"]!r}
 BPM = {int(music_cfg["bpm"])}
 KEY = {music_cfg["key"]!r}
 INSTRUMENTAL = {bool(music_cfg["instrumental"])}
 BASE_SEED = {int(music_cfg["seed"])}
-DURATION_SEC = {min(60, max(30, duration_sec))}
+DURATION_SEC = {min(90, max(30, duration_sec + 3))}
 NUM_CANDIDATES = {candidates}
 
-OUT_DIR = Path("acestep_candidates")
+REPO_DIR = Path("ACE-Step-1.5").resolve()
+CKPT_DIR = (REPO_DIR / "checkpoints").resolve()
+OUT_DIR = Path("acestep_candidates").resolve()
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 try:
-    from acestep.pipeline_ace_step import ACEStepPipeline
+    from acestep.handler import AceStepHandler
+    from acestep.inference import GenerationConfig, GenerationParams, generate_music
+    from acestep.llm_inference import LLMHandler
 except ImportError as exc:
     raise SystemExit(
-        "Install ACE-Step 1.5 first: pip install git+https://github.com/ACE-Step/ACE-Step-1.5.git"
+        "Install ACE-Step 1.5 first:\\n"
+        "  git clone https://github.com/ACE-Step/ACE-Step-1.5.git\\n"
+        "  pip install -e ACE-Step-1.5"
     ) from exc
 
-pipe = ACEStepPipeline()
-pipe.load_checkpoint()
+project_root = str(REPO_DIR if REPO_DIR.exists() else Path.cwd())
+dit_handler = AceStepHandler()
+dit_handler.initialize_service(
+    project_root=project_root,
+    config_path="acestep-v15-turbo",
+    device="cuda",
+)
+
+llm_handler = LLMHandler()
+llm_handler.initialize(
+    checkpoint_dir=str(CKPT_DIR),
+    lm_model_path="acestep-5Hz-lm-0.6B",
+    backend="pt",
+    device="cuda",
+)
 
 logs = []
 for i in range(NUM_CANDIDATES):
     seed = BASE_SEED + i
     out_wav = OUT_DIR / f"candidate_{{i + 1:02d}}.wav"
-    t0 = time.perf_counter()
-    pipe(
-        prompt=CAPTION,
-        lyrics="[instrumental]" if INSTRUMENTAL else "",
-        audio_duration=float(DURATION_SEC),
+    if out_wav.exists():
+        print(f"Skipping existing {{out_wav.name}}")
+        continue
+
+    params = GenerationParams(
+        caption=CAPTION,
+        instrumental=INSTRUMENTAL,
         bpm=BPM,
-        key=KEY,
-        manual_seeds=[seed],
-        save_path=str(out_wav),
+        keyscale=KEY,
+        duration=float(DURATION_SEC),
+        seed=seed,
+    )
+    config = GenerationConfig(
+        batch_size=1,
+        audio_format="wav",
+        use_random_seed=False,
+        seeds=[seed],
+    )
+    t0 = time.perf_counter()
+    result = generate_music(
+        dit_handler,
+        llm_handler,
+        params,
+        config,
+        save_dir=str(OUT_DIR / f"_tmp_{{i + 1:02d}}"),
     )
     dt = time.perf_counter() - t0
+    if not getattr(result, "success", False) or not getattr(result, "audios", None):
+        raise RuntimeError(f"ACE-Step 1.5 failed on candidate {{i + 1}}: {{getattr(result, 'error', 'unknown error')}}")
+
+    src_audio = Path(result.audios[0]["path"])
+    shutil.copy2(src_audio, out_wav)
     logs.append({{"candidate": out_wav.name, "seed": seed, "latency_s": round(dt, 3)}})
-    print(f"Generated {{out_wav}} in {{dt:.2f}}s (seed={{seed}})")
+    print(f"Generated {{out_wav.name}} in {{dt:.2f}}s (seed={{seed}})")
 
 (OUT_DIR / "music_runs.json").write_text(json.dumps(logs, indent=2), encoding="utf-8")
+print("Done! Download files from:", OUT_DIR)
 '''
     script_path.write_text(content, encoding="utf-8")
     return script_path

@@ -78,7 +78,7 @@
 | :--- | :--- | :--- | :--- |
 | **shot_01** | `የሐረር ጀጎል ጥንታዊ ግንብ ሲጨልም፣ የሌሊቱ ጸጥታ በጅቦቹ ድምፅ ይሰበራል።` | `As dusk dims Harar Jugol's walls,` / `the night breaks with hyena calls.` | Flagged for native review |
 | **shot_02** | `ለዘመናት በዘለቀው የሐረር ወግ፣ ፍርሃት በመተማመን ይተካል።` | `In this old Harari tradition,` / `fear slowly yields to trust.` | Flagged for native review |
-| **shot_03** | `ጠባቂውም በስማቸው እየጠራ፣ ሰላምን ስትሰጥ ሰላምን ታገኛለህ፣ ተፈጥሮ ክብርን ታውቃለች አለኝ።` | `Calling them softly, the keeper said:` / `'Give peace, and nature knows respect.'` | Flagged for native review |
+| **shot_03** | `እርሱም፣ ጠባቂውም፣ በስማቸው እየጠራ፣ ሰላምን ስትሰጥ ሰላምን ታገኛለህ፣ ተፈጥሮ ክብርን ታውቃለች አለኝ።` | `Calling them softly, the keeper said:` / `'Give peace, and nature knows respect.'` | Pronunciation fixed (Option A: `እርሱም፣ ጠባቂውም፣`, `EXP-12`) |
 | **shot_04** | `ጅቦቹም በተራቸው ቀርበው ሲበሉ፣ የዱር አውሬ ሳይሆን የከተማዋ ጎረቤቶች ይመስላሉ።` | `Stepping in calmly to feed, they feel` / `less like beasts than city neighbors.` | Flagged for native review |
 | **shot_05** | `ልቤ ቢመታም ፍርሃቴን ተውኩት፤ በትዕግሥት ወደፊት ተራመድኩ።` | `Though my heart raced, I left fear` / `behind and stepped forward patiently.` | Flagged for native review |
 | **shot_06** | *(None — wordless nod & tension release)* | *(None)* | Intentional pause |
@@ -91,7 +91,7 @@
 
 | Tester (Role / Context) | Channel | What They Said / Where They Reacted | What Changed in `storyboard.json` |
 | :--- | :--- | :--- | :--- |
-| Slack / Target-Audience Test Group (3+ listeners) | Slack / Direct | Overall story and radio cut landed well ("good"); Amharic pronunciation verified as good/understandable, with minor room to polish delivery even further if desired. | Synced shot durations from measured TTS (`68.0s` -> `72.64s`); flagged `shot_03` (`11.36s` multi-clause line) and `shot_07`–`08` (`3.8-flash-lite-tts` voice consistency) for optional polish before final export if quota permits. |
+| Slack / Target-Audience Test Group (3+ listeners) | Slack / Direct | Overall story and radio cut landed well ("good"); Amharic pronunciation verified understandable, plus targeted note: `0:19 = Tebakiwem / ጠባቂውም` sounded too smooth instead of crisp/hard `ጠ`. | Synced initial durations (`68.0s` -> `72.64s`); added brief natural lead-in (`እርሱም፣ ጠባቂውም፣`) + firm ejective-consonant style cue (`shot03_optA.wav`, `gemini-3.8-flash-tts`, `10.98s` speech -> `72.26s` synced total, `EXP-12`). |
 
 > **Note for Assignment 1 / AI Interview:** Add the exact individual tester names/roles and verbatim quotes here as you collect them so every detail is traceable to evidence.
 
@@ -101,6 +101,6 @@
 
 | Tester (Role / Context) | Channel | What They Said | What Changed in `storyboard.json` |
 | :--- | :--- | :--- | :--- |
-| Tester 1 | — | *Pending Phase 3 user test* | — |
-| Tester 2 | — | *Pending Phase 3 user test* | — |
-| Tester 3 | — | *Pending Phase 3 user test* | — |
+| Tester 1 (Cohort / Slack reviewer) | Slack | *"At the start of the video, why aren't we seeing the title of the story in both Amharic and English?"* | Added a fading bilingual opening title (`0.25s–4.25s`) displaying both *"Keeper of the Hyenas: A Night in Harar"* (`arial.ttf`) and *"የጅቦቹ ጠባቂ፡ አንድ ምሽት በሐረር"* (`nyala.ttf`) cleanly in `pipeline/assemble.py` (`EXP-15`). |
+| Tester 2 (Cohort / Slack reviewer) | Slack | Reviewed near-final export; no further issues or changes raised. | Verified full-frame `9:16` visibility, subtitle readability, and bilingual opening title held cleanly. |
+| Tester 3 (Cohort / Slack reviewer) | Slack | Reviewed near-final export; no further issues or changes raised. | Locked final `film_9x16.mp4` (`9.09 MB`) & `film_16x9.mp4` (`13.10 MB`) for submission. |

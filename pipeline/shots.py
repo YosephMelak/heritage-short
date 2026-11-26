@@ -28,12 +28,16 @@ from pipeline.utils import (
 KEYFRAMES_DIR = OUTPUTS_DIR / "keyframes"
 SHOTS_DIR = OUTPUTS_DIR / "shots"
 
-# Vary slow Ken Burns directions across consecutive fallback shots to avoid repetitive motion.
+# Shot-matched smooth camera motion profiles (paired with 4x supersampling to avoid zoompan jitter).
 KEN_BURNS_MODES = [
     "zoom_in_center",
+    "zoom_in_center",
+    "zoom_in_subtle",
     "pan_right",
-    "zoom_out_center",
+    "zoom_in_center",
+    "zoom_in_subtle",
     "pan_left",
+    "zoom_out_center",
 ]
 
 
@@ -61,19 +65,23 @@ def _render_ken_burns_fallback(
     mode_index: int,
     fps: int = 24,
 ) -> float:
-    """Animate a still keyframe cleanly at 480p+ square-safe resolution using FFmpeg zoompan."""
+    """Animate a still keyframe smoothly at 720p (16:9) using 4x-supersampled FFmpeg zoompan."""
     ffmpeg_bin = resolve_binary("ffmpeg")
     frames = max(24, int(round(duration_sec * fps)))
     mode = KEN_BURNS_MODES[mode_index % len(KEN_BURNS_MODES)]
 
+    # 4x upscale before zoompan eliminates integer coordinate stepping / micro-jitter.
+    pre = "scale=3840:2160:flags=lanczos,"
     if mode == "zoom_in_center":
-        zp = f"zoompan=z='min(zoom+0.0012,1.12)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s=1024x1024:fps={fps}"
+        zp = f"{pre}zoompan=z='1.0+0.09*on/{frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s=1280x720:fps={fps}"
+    elif mode == "zoom_in_subtle":
+        zp = f"{pre}zoompan=z='1.0+0.05*on/{frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s=1280x720:fps={fps}"
     elif mode == "zoom_out_center":
-        zp = f"zoompan=z='if(lte(on,1),1.12,max(1.0,zoom-0.0012))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s=1024x1024:fps={fps}"
+        zp = f"{pre}zoompan=z='1.10-0.10*on/{frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s=1280x720:fps={fps}"
     elif mode == "pan_right":
-        zp = f"zoompan=z='1.10':x='min(iw-iw/zoom,(iw-iw/zoom)*on/{frames})':y='ih/2-(ih/zoom/2)':d={frames}:s=1024x1024:fps={fps}"
+        zp = f"{pre}zoompan=z='1.08':x='(iw-iw/zoom)*on/{frames}':y='ih/2-(ih/zoom/2)':d={frames}:s=1280x720:fps={fps}"
     else:
-        zp = f"zoompan=z='1.10':x='max(0,(iw-iw/zoom)*(1-on/{frames}))':y='ih/2-(ih/zoom/2)':d={frames}:s=1024x1024:fps={fps}"
+        zp = f"{pre}zoompan=z='1.08':x='(iw-iw/zoom)*(1-on/{frames})':y='ih/2-(ih/zoom/2)':d={frames}:s=1280x720:fps={fps}"
 
     t0 = time.perf_counter()
     proc = subprocess.run(
@@ -90,6 +98,8 @@ def _render_ken_burns_fallback(
             f"{duration_sec:.3f}",
             "-c:v",
             "libx264",
+            "-crf",
+            "16",
             "-pix_fmt",
             "yuv420p",
             "-r",
@@ -148,8 +158,11 @@ for job in JOBS:
         "python",
         str(WAN_REPO / "generate.py"),
         "--task", "ti2v-5B",
-        "--size", "832*480",
+        "--size", "1280*704",
         "--ckpt_dir", str(CKPT_DIR),
+        "--offload_model", "True",
+        "--convert_model_dtype",
+        "--t5_cpu",
         "--image", job["keyframe"],
         "--prompt", job["motion_prompt"],
         "--base_seed", str(job["seed"]),
@@ -180,6 +193,8 @@ def process_shots(
     if emit_kaggle:
         script_path = emit_wan_kaggle_script(storyboard)
         print(f"[shots] Wrote Kaggle Wan 2.2 batch script: {script_path}")
+        if ingest_dir is None and not fallback_ken_burns:
+            return
 
     changed_cache_keys = False
     for idx, shot in enumerate(storyboard.get("shots", [])):
